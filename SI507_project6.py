@@ -28,11 +28,15 @@ cur.execute("DROP TABLE IF EXISTS Sites")
 cur.execute("DROP TABLE IF EXISTS States")
 
 cur.execute("CREATE TABLE IF NOT EXISTS States(ID SERIAL PRIMARY KEY, Name VARCHAR(40) UNIQUE)")
-cur.execute("CREATE TABLE IF NOT EXISTS Sites(ID SERIAL, Name VARCHAR(128) UNIQUE, Type VARCHAR(128), State_ID INTEGER, Location VARCHAR(255), Description TEXT)")
+cur.execute("CREATE TABLE IF NOT EXISTS Sites(ID SERIAL PRIMARY KEY, Name VARCHAR(128) UNIQUE, Type VARCHAR(128), State_ID INTEGER, Location VARCHAR(255), Description TEXT, FOREIGN KEY (State_ID) REFERENCES States(ID))")
 
 file_arkansas = DictReader(open('arkansas.csv','r'))
 file_michigan = DictReader(open('michigan.csv','r'))
 file_california = DictReader(open('california.csv','r'))
+
+cur.execute("INSERT INTO States(Name) VALUES ('AR')")
+cur.execute("INSERT INTO States(Name) VALUES ('MI')")
+cur.execute("INSERT INTO States(Name) VALUES ('CA')")
 
 for line_dict in file_arkansas:
     sql = """INSERT INTO Sites(Name,Type,State_ID,Location,Description) VALUES (%s,%s,%s,%s,%s)"""
@@ -44,27 +48,29 @@ for line_dict in file_california:
     sql = """INSERT INTO Sites(Name,Type,State_ID,Location,Description) VALUES (%s,%s,%s,%s,%s)"""
     cur.execute(sql,(line_dict['NAME'],line_dict['TYPE'],3,(line_dict['ADDRESS']),line_dict['DESCRIPTION']))
 
-cur.execute("INSERT INTO States(Name) VALUES ('AR')")
-cur.execute("INSERT INTO States(Name) VALUES ('MI')")
-cur.execute("INSERT INTO States(Name) VALUES ('CA')")
 con.commit()
 
 cur.execute("SELECT Location FROM Sites")
 all_locations = []
 for entry in cur.fetchall():
     all_locations.append(entry.values())
+print(all_locations)
 
-cur.execute("""SELECT Description FROM Sites WHERE Description ilike '%beautiful%'""")
+cur.execute("""SELECT Name FROM Sites WHERE Description ilike '%beautiful%'""")
 beautiful_sites = cur.fetchall()
+print(beautiful_sites)
 
 cur.execute("""SELECT count(*) FROM Sites WHERE Type ilike '%National Lakeshore%'""")
 natl_lakeshores = cur.fetchall()
+print(natl_lakeshores)
 
 cur.execute("SELECT Sites.Name FROM Sites INNER JOIN States ON Sites.State_ID = States.ID WHERE States.ID = 2") #needs inner join method
-michigan_name = cur.fetchall()
+michigan_names = cur.fetchall()
+print(michigan_names)
 
 cur.execute("SELECT Count(*) FROM Sites INNER JOIN States ON Sites.State_ID = States.ID WHERE States.ID = 1")
 total_number_arkansas = cur.fetchall()
+print(total_number_arkansas)
 
 # Write code / functions to create tables with the columns you want and all database setup here.
 
